@@ -239,7 +239,7 @@ function Section({ title, action, children }: { title: string; action?: React.Re
   );
 }
 
-function Field({ label, value, onChange, ...rest }: { label: string; value: string; onChange: (v: string) => void } & React.InputHTMLAttributes<HTMLInputElement>) {
+function Field({ label, value, onChange, ...rest }: { label: string; value: string; onChange: (v: string) => void } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange">) {
   return (
     <div className="space-y-1.5">
       <Label>{label}</Label>

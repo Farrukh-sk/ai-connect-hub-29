@@ -6,12 +6,12 @@ export const Route = createFileRoute("/_authenticated/analytics")({
   component: AnalyticsPage,
 });
 
-const KPIS = [
-  { label: "Total Messages", value: "12,847", delta: +18.4, Icon: MessageCircle },
-  { label: "Leads Generated", value: "342", delta: +12.1, Icon: Target },
+const KPIS: { label: string; value: string; delta: number; Icon: typeof MessageCircle; invert?: boolean }[] = [
+  { label: "Total Messages", value: "12,847", delta: 18.4, Icon: MessageCircle },
+  { label: "Leads Generated", value: "342", delta: 12.1, Icon: Target },
   { label: "Avg Response Time", value: "1.8s", delta: -23.0, Icon: Clock, invert: true },
-  { label: "Conversion Rate", value: "27.4%", delta: +4.2, Icon: TrendingUp },
-] as const;
+  { label: "Conversion Rate", value: "27.4%", delta: 4.2, Icon: TrendingUp },
+];
 
 const WEEK = [
   { d: "Mon", msgs: 1420, leads: 38 },

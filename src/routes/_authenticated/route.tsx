@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, redirect, Link, useRouter } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { LayoutDashboard, Users, MessageCircle, Target, LogOut, Sparkles } from "lucide-react";
+import { LayoutDashboard, Users, MessageCircle, Target, BarChart3, LogOut, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -15,8 +15,9 @@ export const Route = createFileRoute("/_authenticated")({
 const NAV = [
   { to: "/dashboard", label: "Home", Icon: LayoutDashboard },
   { to: "/clients", label: "Clients", Icon: Users },
-  { to: "/conversations", label: "Chats", Icon: MessageCircle },
+  { to: "/livechat", label: "Chat", Icon: MessageCircle },
   { to: "/leads", label: "Leads", Icon: Target },
+  { to: "/analytics", label: "Stats", Icon: BarChart3 },
 ] as const;
 
 function AuthedLayout() {
@@ -44,7 +45,7 @@ function AuthedLayout() {
         <Outlet />
       </main>
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border/60 bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
-        <div className="mx-auto grid max-w-3xl grid-cols-4">
+        <div className="mx-auto grid max-w-3xl grid-cols-5">
           {NAV.map(({ to, label, Icon }) => (
             <Link
               key={to}
