@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Building2 } from "lucide-react";
+import { Plus, Bot, Phone } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/clients")({
@@ -41,12 +41,10 @@ function ClientsPage() {
       const { error } = await supabase.from("clients").insert({
         user_id: u.user!.id,
         name: form.name,
-        company: form.company || null,
-        email: form.email || null,
-        phone: form.phone || null,
-        monthly_value: Number(form.monthly_value || 0),
+        company: form.name,
+        whatsapp_number: form.whatsapp_number || null,
+        ai_prompt: form.ai_prompt || null,
         status: (form.status || "active") as "active" | "paused" | "churned",
-        notes: form.notes || null,
       });
       if (error) throw error;
     },
@@ -59,17 +57,22 @@ function ClientsPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    create.mutate(Object.fromEntries(fd) as Record<string, string>);
-  }
+  const toggleStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: "active" | "paused" | "churned" }) => {
+      const { error } = await supabase.from("clients").update({ status }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["clients"] });
+      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+    },
+  });
 
   return (
     <div className="space-y-5">
       <header className="flex items-end justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-sm text-muted-foreground">{clients.length} total</p>
+          <p className="text-sm text-muted-foreground">{clients.length} businesses</p>
           <h1 className="text-3xl font-bold tracking-tight">Clients</h1>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
@@ -78,16 +81,21 @@ function ClientsPage() {
           </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader><DialogTitle>New client</DialogTitle></DialogHeader>
-            <form onSubmit={onSubmit} className="space-y-3">
-              <Field name="name" label="Name" required />
-              <Field name="company" label="Company" />
-              <div className="grid grid-cols-2 gap-3">
-                <Field name="email" label="Email" type="email" />
-                <Field name="phone" label="Phone" />
-              </div>
-              <Field name="monthly_value" label="Monthly value ($)" type="number" step="0.01" />
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                create.mutate(Object.fromEntries(new FormData(e.currentTarget)) as Record<string, string>);
+              }}
+              className="space-y-3"
+            >
+              <Field name="name" label="Business name" required />
+              <Field name="whatsapp_number" label="WhatsApp number" placeholder="+1 555 0100" required />
               <div className="space-y-1.5">
-                <Label>Status</Label>
+                <Label htmlFor="ai_prompt">AI prompt</Label>
+                <Textarea id="ai_prompt" name="ai_prompt" rows={4} placeholder="You are a friendly assistant for..." />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Bot status</Label>
                 <Select name="status" defaultValue="active">
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -97,10 +105,6 @@ function ClientsPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="notes">Notes</Label>
-                <Textarea id="notes" name="notes" rows={3} />
-              </div>
               <Button type="submit" disabled={create.isPending} className="w-full">Save client</Button>
             </form>
           </DialogContent>
@@ -108,25 +112,43 @@ function ClientsPage() {
       </header>
 
       {clients.length === 0 ? (
-        <EmptyState text="No clients yet. Add your first to start tracking MRR." />
+        <EmptyState text="No clients yet. Add a business to deploy its WhatsApp bot." />
       ) : (
         <ul className="space-y-2.5">
           {clients.map((c) => (
-            <li key={c.id} className="glass-card flex items-center gap-3 rounded-2xl p-4">
-              <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-secondary text-foreground">
-                <Building2 className="h-5 w-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="truncate font-semibold">{c.name}</span>
-                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium uppercase ${STATUS_STYLE[c.status]}`}>{c.status}</span>
+            <li key={c.id} className="glass-card rounded-2xl p-4">
+              <div className="flex items-start gap-3">
+                <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary">
+                  <Bot className="h-5 w-5" />
                 </div>
-                <div className="truncate text-xs text-muted-foreground">{c.company ?? c.email ?? "—"}</div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="truncate font-semibold">{c.name}</span>
+                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium uppercase ${STATUS_STYLE[c.status]}`}>{c.status}</span>
+                  </div>
+                  {c.whatsapp_number && (
+                    <div className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+                      <Phone className="h-3 w-3" /> {c.whatsapp_number}
+                    </div>
+                  )}
+                </div>
+                <Select
+                  value={c.status}
+                  onValueChange={(v) => toggleStatus.mutate({ id: c.id, status: v as "active" | "paused" | "churned" })}
+                >
+                  <SelectTrigger className="h-8 w-auto shrink-0 border-0 px-2 text-[11px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="paused">Paused</SelectItem>
+                    <SelectItem value="churned">Churned</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="shrink-0 text-right">
-                <div className="text-sm font-semibold text-primary">${Number(c.monthly_value ?? 0).toLocaleString()}</div>
-                <div className="text-[10px] uppercase text-muted-foreground">MRR</div>
-              </div>
+              {c.ai_prompt && (
+                <p className="mt-3 line-clamp-2 rounded-lg bg-secondary/60 p-2.5 text-xs italic text-muted-foreground">
+                  "{c.ai_prompt}"
+                </p>
+              )}
             </li>
           ))}
         </ul>
@@ -146,8 +168,6 @@ function Field({ name, label, ...rest }: { name: string; label: string } & React
 
 export function EmptyState({ text }: { text: string }) {
   return (
-    <div className="glass-card rounded-2xl px-6 py-12 text-center text-sm text-muted-foreground">
-      {text}
-    </div>
+    <div className="glass-card rounded-2xl px-6 py-12 text-center text-sm text-muted-foreground">{text}</div>
   );
 }
