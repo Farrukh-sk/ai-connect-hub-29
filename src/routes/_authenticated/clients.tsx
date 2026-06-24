@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -149,20 +149,22 @@ function ClientsPage() {
           {clients.map((c) => (
             <li key={c.id} className="glass-card rounded-2xl p-4">
               <div className="flex items-start gap-3">
-                <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary">
-                  <Bot className="h-5 w-5" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="truncate font-semibold">{c.business_name}</span>
-                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium uppercase ${STATUS_STYLE[c.status]}`}>{c.status}</span>
+                <Link to="/clients/$id" params={{ id: c.id }} className="flex min-w-0 flex-1 items-start gap-3">
+                  <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary">
+                    <Bot className="h-5 w-5" />
                   </div>
-                  {c.whatsapp_number && (
-                    <div className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
-                      <Phone className="h-3 w-3" /> {c.whatsapp_number}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="truncate font-semibold">{c.business_name}</span>
+                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium uppercase ${STATUS_STYLE[c.status]}`}>{c.status}</span>
                     </div>
-                  )}
-                </div>
+                    {c.whatsapp_number && (
+                      <div className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+                        <Phone className="h-3 w-3" /> {c.whatsapp_number}
+                      </div>
+                    )}
+                  </div>
+                </Link>
                 <div className="flex shrink-0 items-center gap-1">
                   <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditing(c)} aria-label="Edit">
                     <Pencil className="h-4 w-4" />
