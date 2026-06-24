@@ -17,12 +17,12 @@ export type Database = {
       clients: {
         Row: {
           ai_prompt: string | null
+          business_name: string
           company: string | null
           created_at: string
           email: string | null
           id: string
           monthly_value: number | null
-          name: string
           notes: string | null
           phone: string | null
           status: Database["public"]["Enums"]["client_status"]
@@ -32,12 +32,12 @@ export type Database = {
         }
         Insert: {
           ai_prompt?: string | null
+          business_name: string
           company?: string | null
           created_at?: string
           email?: string | null
           id?: string
           monthly_value?: number | null
-          name: string
           notes?: string | null
           phone?: string | null
           status?: Database["public"]["Enums"]["client_status"]
@@ -47,12 +47,12 @@ export type Database = {
         }
         Update: {
           ai_prompt?: string | null
+          business_name?: string
           company?: string | null
           created_at?: string
           email?: string | null
           id?: string
           monthly_value?: number | null
-          name?: string
           notes?: string | null
           phone?: string | null
           status?: Database["public"]["Enums"]["client_status"]
@@ -69,11 +69,11 @@ export type Database = {
           client_id: string | null
           created_at: string
           customer_name: string | null
+          customer_phone: string | null
           id: string
           last_message_at: string | null
           lead_id: string | null
           message: string | null
-          phone: string | null
           title: string | null
           updated_at: string
           user_id: string
@@ -84,11 +84,11 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           customer_name?: string | null
+          customer_phone?: string | null
           id?: string
           last_message_at?: string | null
           lead_id?: string | null
           message?: string | null
-          phone?: string | null
           title?: string | null
           updated_at?: string
           user_id: string
@@ -99,11 +99,11 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           customer_name?: string | null
+          customer_phone?: string | null
           id?: string
           last_message_at?: string | null
           lead_id?: string | null
           message?: string | null
-          phone?: string | null
           title?: string | null
           updated_at?: string
           user_id?: string
@@ -127,6 +127,7 @@ export type Database = {
       }
       leads: {
         Row: {
+          client_id: string | null
           company: string | null
           created_at: string
           email: string | null
@@ -142,6 +143,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          client_id?: string | null
           company?: string | null
           created_at?: string
           email?: string | null
@@ -157,6 +159,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          client_id?: string | null
           company?: string | null
           created_at?: string
           email?: string | null
@@ -171,7 +174,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "leads_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
