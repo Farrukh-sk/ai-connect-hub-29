@@ -16,9 +16,9 @@ function Dashboard() {
     queryKey: ["dashboard-stats"],
     queryFn: async () => {
       const [clients, leads, convs] = await Promise.all([
-        supabase.from("clients").select("id,status,name"),
+        supabase.from("clients").select("id,status,business_name"),
         supabase.from("leads").select("id"),
-        supabase.from("conversations").select("id,customer_name,phone,message,created_at,clients(name)").order("created_at", { ascending: false }).limit(5),
+        supabase.from("conversations").select("id,customer_name,customer_phone,message,created_at,clients(business_name)").order("created_at", { ascending: false }).limit(5),
       ]);
       const c = clients.data ?? [];
       return {
@@ -37,30 +37,30 @@ function Dashboard() {
       const userId = u.user!.id;
 
       const sampleClients = [
-        { user_id: userId, name: "Bloom Florist", company: "Bloom Florist", whatsapp_number: "+1 415 555 0101", ai_prompt: "You are a friendly florist assistant. Help customers pick bouquets, take orders, and answer delivery questions.", status: "active" as const, monthly_value: 299 },
-        { user_id: userId, name: "Pizza Roma", company: "Pizza Roma", whatsapp_number: "+1 415 555 0102", ai_prompt: "You are Roma, the pizza order bot. Take orders, suggest sides, and confirm delivery time.", status: "active" as const, monthly_value: 499 },
-        { user_id: userId, name: "FitLab Gym", company: "FitLab Gym", whatsapp_number: "+1 415 555 0103", ai_prompt: "Help leads book a trial class and answer membership questions.", status: "paused" as const, monthly_value: 199 },
-        { user_id: userId, name: "GlowSpa", company: "GlowSpa", whatsapp_number: "+1 415 555 0104", ai_prompt: "You are GlowSpa's booking concierge. Book appointments and recommend treatments.", status: "active" as const, monthly_value: 349 },
+        { user_id: userId, business_name: "Bloom Florist", whatsapp_number: "+1 415 555 0101", ai_prompt: "You are a friendly florist assistant. Help customers pick bouquets, take orders, and answer delivery questions.", status: "active" as const },
+        { user_id: userId, business_name: "Pizza Roma", whatsapp_number: "+1 415 555 0102", ai_prompt: "You are Roma, the pizza order bot. Take orders, suggest sides, and confirm delivery time.", status: "active" as const },
+        { user_id: userId, business_name: "FitLab Gym", whatsapp_number: "+1 415 555 0103", ai_prompt: "Help leads book a trial class and answer membership questions.", status: "paused" as const },
+        { user_id: userId, business_name: "GlowSpa", whatsapp_number: "+1 415 555 0104", ai_prompt: "You are GlowSpa's booking concierge. Book appointments and recommend treatments.", status: "active" as const },
       ];
-      const { data: insClients, error: cErr } = await supabase.from("clients").insert(sampleClients).select("id,name");
+      const { data: insClients, error: cErr } = await supabase.from("clients").insert(sampleClients).select("id,business_name");
       if (cErr) throw cErr;
-      const byName = Object.fromEntries((insClients ?? []).map(x => [x.name, x.id]));
+      const byName = Object.fromEntries((insClients ?? []).map(x => [x.business_name, x.id]));
 
       const sampleLeads = [
-        { user_id: userId, name: "Acme Dental", phone: "+1 415 555 0201", requirement: "WhatsApp bot to book cleanings and send reminders.", status: "new" as const, estimated_value: 800 },
-        { user_id: userId, name: "Sunset Realty", phone: "+1 415 555 0202", requirement: "Lead qualifier bot for property inquiries.", status: "qualified" as const, estimated_value: 1500 },
-        { user_id: userId, name: "Crave Burgers", phone: "+1 415 555 0203", requirement: "Order intake + menu Q&A in WhatsApp.", status: "proposal" as const, estimated_value: 600 },
-        { user_id: userId, name: "Zen Yoga", phone: "+1 415 555 0204", requirement: "Class schedule and booking bot.", status: "contacted" as const, estimated_value: 400 },
+        { user_id: userId, name: "Acme Dental", phone: "+1 415 555 0201", requirement: "WhatsApp bot to book cleanings and send reminders.", status: "new" as const, client_id: byName["Bloom Florist"] ?? null },
+        { user_id: userId, name: "Sunset Realty", phone: "+1 415 555 0202", requirement: "Lead qualifier bot for property inquiries.", status: "qualified" as const, client_id: null },
+        { user_id: userId, name: "Crave Burgers", phone: "+1 415 555 0203", requirement: "Order intake + menu Q&A in WhatsApp.", status: "proposal" as const, client_id: null },
+        { user_id: userId, name: "Zen Yoga", phone: "+1 415 555 0204", requirement: "Class schedule and booking bot.", status: "contacted" as const, client_id: null },
       ];
       const { error: lErr } = await supabase.from("leads").insert(sampleLeads);
       if (lErr) throw lErr;
 
       const sampleConvs = [
-        { user_id: userId, client_id: byName["Bloom Florist"], channel: "whatsapp", customer_name: "Sarah Chen", phone: "+1 415 555 0301", message: "Hi! Do you deliver red roses tomorrow morning?", ai_reply: "Yes! We deliver 9am–12pm tomorrow. A dozen red roses is $59. Want me to place the order?" },
-        { user_id: userId, client_id: byName["Pizza Roma"], channel: "whatsapp", customer_name: "Mike Patel", phone: "+1 415 555 0302", message: "Large pepperoni, extra cheese. Delivery to 22 Mission St.", ai_reply: "Got it — Large pepperoni with extra cheese ($18.50) to 22 Mission St. ETA 35 min. Confirm?" },
-        { user_id: userId, client_id: byName["GlowSpa"], channel: "whatsapp", customer_name: "Aisha Khan", phone: "+1 415 555 0303", message: "Can I book a facial for Saturday afternoon?", ai_reply: "We have 2pm or 4pm open Saturday. Which works better?" },
-        { user_id: userId, client_id: byName["Pizza Roma"], channel: "whatsapp", customer_name: "Jordan Lee", phone: "+1 415 555 0304", message: "What vegan options do you have?", ai_reply: "We offer Vegan Margherita and Vegan Veggie Supreme — both with house-made cashew mozzarella." },
-        { user_id: userId, client_id: byName["Bloom Florist"], channel: "whatsapp", customer_name: "Priya Shah", phone: "+1 415 555 0305", message: "Need a birthday bouquet under $40.", ai_reply: "Our Sunshine Mix ($35) is bright and cheerful — sunflowers, daisies, and lilies. Add a card for $3?" },
+        { user_id: userId, client_id: byName["Bloom Florist"], channel: "whatsapp", customer_name: "Sarah Chen", customer_phone: "+1 415 555 0301", message: "Hi! Do you deliver red roses tomorrow morning?", ai_reply: "Yes! We deliver 9am–12pm tomorrow. A dozen red roses is $59. Want me to place the order?" },
+        { user_id: userId, client_id: byName["Pizza Roma"], channel: "whatsapp", customer_name: "Mike Patel", customer_phone: "+1 415 555 0302", message: "Large pepperoni, extra cheese. Delivery to 22 Mission St.", ai_reply: "Got it — Large pepperoni with extra cheese ($18.50) to 22 Mission St. ETA 35 min. Confirm?" },
+        { user_id: userId, client_id: byName["GlowSpa"], channel: "whatsapp", customer_name: "Aisha Khan", customer_phone: "+1 415 555 0303", message: "Can I book a facial for Saturday afternoon?", ai_reply: "We have 2pm or 4pm open Saturday. Which works better?" },
+        { user_id: userId, client_id: byName["Pizza Roma"], channel: "whatsapp", customer_name: "Jordan Lee", customer_phone: "+1 415 555 0304", message: "What vegan options do you have?", ai_reply: "We offer Vegan Margherita and Vegan Veggie Supreme — both with house-made cashew mozzarella." },
+        { user_id: userId, client_id: byName["Bloom Florist"], channel: "whatsapp", customer_name: "Priya Shah", customer_phone: "+1 415 555 0305", message: "Need a birthday bouquet under $40.", ai_reply: "Our Sunshine Mix ($35) is bright and cheerful — sunflowers, daisies, and lilies. Add a card for $3?" },
       ];
       const { error: mErr } = await supabase.from("conversations").insert(sampleConvs.map(c => ({ ...c, last_message_at: new Date().toISOString() })));
       if (mErr) throw mErr;
@@ -136,7 +136,7 @@ function Dashboard() {
                     </span>
                   </div>
                   <div className="truncate text-xs text-muted-foreground">
-                    {c.clients?.name ? `${c.clients.name} · ` : ""}{c.message}
+                    {c.clients?.business_name ? `${c.clients.business_name} · ` : ""}{c.message}
                   </div>
                 </div>
               </Link>

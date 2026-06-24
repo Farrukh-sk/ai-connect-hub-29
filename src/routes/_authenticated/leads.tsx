@@ -37,10 +37,18 @@ function LeadsPage() {
   const { data: leads = [] } = useQuery({
     queryKey: ["leads"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("leads").select("*").order("created_at", { ascending: false });
+      const { data, error } = await supabase
+        .from("leads")
+        .select("*, clients(business_name)")
+        .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
+  });
+
+  const { data: clientOpts = [] } = useQuery({
+    queryKey: ["clients-lite"],
+    queryFn: async () => (await supabase.from("clients").select("id,business_name")).data ?? [],
   });
 
   const filtered = filter === "all" ? leads : leads.filter(l => l.status === filter);
@@ -53,6 +61,7 @@ function LeadsPage() {
         name: form.name,
         phone: form.phone || null,
         requirement: form.requirement || null,
+        client_id: form.client_id || null,
         status: (form.status || "new") as Status,
       });
       if (error) throw error;
@@ -103,6 +112,17 @@ function LeadsPage() {
                 <Label htmlFor="requirement">Requirement</Label>
                 <Textarea id="requirement" name="requirement" rows={3} placeholder="What kind of bot do they need?" />
               </div>
+              {clientOpts.length > 0 && (
+                <div className="space-y-1.5">
+                  <Label>Linked client (optional)</Label>
+                  <Select name="client_id">
+                    <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
+                    <SelectContent>
+                      {clientOpts.map(c => <SelectItem key={c.id} value={c.id}>{c.business_name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="space-y-1.5">
                 <Label>Status</Label>
                 <Select name="status" defaultValue="new">
