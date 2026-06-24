@@ -1,0 +1,63 @@
+import { createFileRoute, Outlet, redirect, Link, useRouter } from "@tanstack/react-router";
+import { supabase } from "@/integrations/supabase/client";
+import { LayoutDashboard, Users, MessageCircle, Target, LogOut, Sparkles } from "lucide-react";
+
+export const Route = createFileRoute("/_authenticated")({
+  ssr: false,
+  beforeLoad: async () => {
+    const { data, error } = await supabase.auth.getUser();
+    if (error || !data.user) throw redirect({ to: "/auth" });
+    return { user: data.user };
+  },
+  component: AuthedLayout,
+});
+
+const NAV = [
+  { to: "/dashboard", label: "Home", Icon: LayoutDashboard },
+  { to: "/clients", label: "Clients", Icon: Users },
+  { to: "/conversations", label: "Chats", Icon: MessageCircle },
+  { to: "/leads", label: "Leads", Icon: Target },
+] as const;
+
+function AuthedLayout() {
+  const router = useRouter();
+  async function signOut() {
+    await supabase.auth.signOut();
+    router.navigate({ to: "/auth", replace: true });
+  }
+  return (
+    <div className="min-h-dvh pb-24">
+      <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur">
+        <div className="mx-auto flex max-w-3xl items-center justify-between px-5 py-3">
+          <Link to="/dashboard" className="flex items-center gap-2">
+            <div className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
+              <Sparkles className="h-4 w-4" />
+            </div>
+            <span className="text-base font-bold tracking-tight">Nexus</span>
+          </Link>
+          <button onClick={signOut} className="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground" aria-label="Sign out">
+            <LogOut className="h-4 w-4" />
+          </button>
+        </div>
+      </header>
+      <main className="mx-auto max-w-3xl px-5 py-5">
+        <Outlet />
+      </main>
+      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border/60 bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
+        <div className="mx-auto grid max-w-3xl grid-cols-4">
+          {NAV.map(({ to, label, Icon }) => (
+            <Link
+              key={to}
+              to={to}
+              className="flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium text-muted-foreground transition-colors data-[status=active]:text-primary"
+              activeProps={{ "data-status": "active" } as never}
+            >
+              <Icon className="h-5 w-5" />
+              {label}
+            </Link>
+          ))}
+        </div>
+      </nav>
+    </div>
+  );
+}
