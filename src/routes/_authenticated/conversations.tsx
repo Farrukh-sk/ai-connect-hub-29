@@ -26,7 +26,7 @@ function ConversationsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("conversations")
-        .select("*, clients(name)")
+        .select("*, clients(business_name)")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -35,7 +35,7 @@ function ConversationsPage() {
 
   const { data: clients = [] } = useQuery({
     queryKey: ["clients-lite"],
-    queryFn: async () => (await supabase.from("clients").select("id,name")).data ?? [],
+    queryFn: async () => (await supabase.from("clients").select("id,business_name")).data ?? [],
   });
 
   const create = useMutation({
@@ -45,7 +45,7 @@ function ConversationsPage() {
         user_id: u.user!.id,
         client_id: form.client_id || null,
         customer_name: form.customer_name,
-        phone: form.phone,
+        customer_phone: form.customer_phone,
         message: form.message,
         ai_reply: form.ai_reply || null,
         channel: "whatsapp",
@@ -88,14 +88,14 @@ function ConversationsPage() {
                   <Select name="client_id">
                     <SelectTrigger><SelectValue placeholder="Select a client" /></SelectTrigger>
                     <SelectContent>
-                      {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                      {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.business_name}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
               )}
               <div className="grid grid-cols-2 gap-3">
                 <Field name="customer_name" label="Customer" required />
-                <Field name="phone" label="Phone" placeholder="+1 555..." required />
+                <Field name="customer_phone" label="Phone" placeholder="+1 555..." required />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="message">Customer message</Label>
@@ -125,8 +125,8 @@ function ConversationsPage() {
                   <div className="min-w-0">
                     <div className="truncate text-sm font-semibold">{c.customer_name ?? "Customer"}</div>
                     <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                      <Phone className="h-2.5 w-2.5" /> {c.phone ?? "—"}
-                      {c.clients?.name && <span className="ml-1 truncate">· {c.clients.name}</span>}
+                      <Phone className="h-2.5 w-2.5" /> {c.customer_phone ?? "—"}
+                      {c.clients?.business_name && <span className="ml-1 truncate">· {c.clients.business_name}</span>}
                     </div>
                   </div>
                 </div>
