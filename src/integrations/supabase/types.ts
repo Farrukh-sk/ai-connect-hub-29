@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       clients: {
         Row: {
+          ai_prompt: string | null
           company: string | null
           created_at: string
           email: string | null
@@ -27,8 +28,10 @@ export type Database = {
           status: Database["public"]["Enums"]["client_status"]
           updated_at: string
           user_id: string
+          whatsapp_number: string | null
         }
         Insert: {
+          ai_prompt?: string | null
           company?: string | null
           created_at?: string
           email?: string | null
@@ -40,8 +43,10 @@ export type Database = {
           status?: Database["public"]["Enums"]["client_status"]
           updated_at?: string
           user_id: string
+          whatsapp_number?: string | null
         }
         Update: {
+          ai_prompt?: string | null
           company?: string | null
           created_at?: string
           email?: string | null
@@ -53,40 +58,53 @@ export type Database = {
           status?: Database["public"]["Enums"]["client_status"]
           updated_at?: string
           user_id?: string
+          whatsapp_number?: string | null
         }
         Relationships: []
       }
       conversations: {
         Row: {
+          ai_reply: string | null
           channel: string | null
           client_id: string | null
           created_at: string
+          customer_name: string | null
           id: string
           last_message_at: string | null
           lead_id: string | null
-          title: string
+          message: string | null
+          phone: string | null
+          title: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          ai_reply?: string | null
           channel?: string | null
           client_id?: string | null
           created_at?: string
+          customer_name?: string | null
           id?: string
           last_message_at?: string | null
           lead_id?: string | null
-          title: string
+          message?: string | null
+          phone?: string | null
+          title?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          ai_reply?: string | null
           channel?: string | null
           client_id?: string | null
           created_at?: string
+          customer_name?: string | null
           id?: string
           last_message_at?: string | null
           lead_id?: string | null
-          title?: string
+          message?: string | null
+          phone?: string | null
+          title?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -117,6 +135,7 @@ export type Database = {
           name: string
           notes: string | null
           phone: string | null
+          requirement: string | null
           source: string | null
           status: Database["public"]["Enums"]["lead_status"]
           updated_at: string
@@ -131,6 +150,7 @@ export type Database = {
           name: string
           notes?: string | null
           phone?: string | null
+          requirement?: string | null
           source?: string | null
           status?: Database["public"]["Enums"]["lead_status"]
           updated_at?: string
@@ -145,47 +165,13 @@ export type Database = {
           name?: string
           notes?: string | null
           phone?: string | null
+          requirement?: string | null
           source?: string | null
           status?: Database["public"]["Enums"]["lead_status"]
           updated_at?: string
           user_id?: string
         }
         Relationships: []
-      }
-      messages: {
-        Row: {
-          content: string
-          conversation_id: string
-          created_at: string
-          id: string
-          sender: Database["public"]["Enums"]["message_sender"]
-          user_id: string
-        }
-        Insert: {
-          content: string
-          conversation_id: string
-          created_at?: string
-          id?: string
-          sender?: Database["public"]["Enums"]["message_sender"]
-          user_id: string
-        }
-        Update: {
-          content?: string
-          conversation_id?: string
-          created_at?: string
-          id?: string
-          sender?: Database["public"]["Enums"]["message_sender"]
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "messages_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: false
-            referencedRelation: "conversations"
-            referencedColumns: ["id"]
-          },
-        ]
       }
     }
     Views: {
