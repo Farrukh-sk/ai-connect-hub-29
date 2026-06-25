@@ -1,11 +1,22 @@
-import { createFileRoute, useRouteContext } from "@tanstack/react-router";
+import { createFileRoute, useRouteContext, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { User, Lock, Mail } from "lucide-react";
+import { User, Lock, Mail, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({ meta: [{ title: "Profile — Nexus CRM" }] }),
@@ -14,6 +25,7 @@ export const Route = createFileRoute("/_authenticated/profile")({
 
 function ProfilePage() {
   const { user } = useRouteContext({ from: "/_authenticated" });
+  const router = useRouter();
 
   const [displayName, setDisplayName] = useState(
     user.user_metadata?.full_name ?? user.user_metadata?.name ?? ""
@@ -24,6 +36,9 @@ function ProfilePage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [pwLoading, setPwLoading] = useState(false);
+
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const isOAuthUser = (user.app_metadata?.provider ?? "") !== "email";
 
@@ -75,6 +90,21 @@ function ProfilePage() {
     }
   }
 
+  async function deleteAccount() {
+    setDeleteLoading(true);
+    try {
+      const { error } = await supabase.rpc("delete_user");
+      if (error) throw error;
+      await supabase.auth.signOut();
+      router.navigate({ to: "/auth", replace: true });
+      toast.success("Your account has been deleted.");
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setDeleteLoading(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -103,9 +133,7 @@ function ProfilePage() {
           </div>
           <div>
             <p className="text-sm font-semibold">Display name</p>
-            <p className="text-xs text-muted-foreground">
-              Shown across the app.
-            </p>
+            <p className="text-xs text-muted-foreground">Shown across the app.</p>
           </div>
         </div>
         <div className="space-y-2">
@@ -191,6 +219,58 @@ function ProfilePage() {
           </div>
         </div>
       )}
+
+      <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6 space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="grid h-9 w-9 place-items-center rounded-lg bg-destructive/10 text-destructive">
+            <Trash2 className="h-4 w-4" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-destructive">Danger zone</p>
+            <p className="text-xs text-muted-foreground">
+              Permanently delete your account and all data.
+            </p>
+          </div>
+        </div>
+
+        <AlertDialog onOpenChange={(open) => { if (!open) setDeleteConfirm(""); }}>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" className="w-full">
+              Delete my account
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete account permanently?</AlertDialogTitle>
+              <AlertDialogDescription className="space-y-3">
+                <span className="block">
+                  This will permanently delete your account and all associated data —
+                  clients, leads, conversations, and settings. This cannot be undone.
+                </span>
+                <span className="block">
+                  Type <span className="font-mono font-semibold text-foreground">DELETE</span> to confirm.
+                </span>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <Input
+              placeholder="Type DELETE to confirm"
+              value={deleteConfirm}
+              onChange={(e) => setDeleteConfirm(e.target.value)}
+              className="mt-1"
+            />
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                disabled={deleteConfirm !== "DELETE" || deleteLoading}
+                onClick={deleteAccount}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {deleteLoading ? "Deleting…" : "Delete account"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
     </div>
   );
 }
