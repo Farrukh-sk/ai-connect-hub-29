@@ -28,31 +28,36 @@ function AuthedLayout() {
   }
   return (
     <div className="min-h-dvh pb-24">
-      <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b border-border/50 bg-background/70 backdrop-blur-xl">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-5 py-3">
-          <Link to="/dashboard" className="flex items-center gap-2">
-            <div className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
+          <Link to="/dashboard" className="flex items-center gap-2.5">
+            <div className="relative grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-primary to-primary/60 text-primary-foreground shadow-lg shadow-primary/20">
               <Sparkles className="h-4 w-4" />
+              <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-gold ring-2 ring-background" />
             </div>
-            <span className="text-base font-bold tracking-tight">Nexus</span>
+            <div className="leading-tight">
+              <div className="font-display text-base font-bold tracking-tight">Nexus</div>
+              <div className="text-[10px] uppercase tracking-[0.18em] text-gold/80">Agency CRM</div>
+            </div>
           </Link>
-          <button onClick={signOut} className="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground" aria-label="Sign out">
+          <button onClick={signOut} className="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground" aria-label="Sign out">
             <LogOut className="h-4 w-4" />
           </button>
         </div>
       </header>
-      <main className="mx-auto max-w-3xl px-5 py-5">
+      <main className="mx-auto max-w-3xl px-5 py-6">
         <Outlet />
       </main>
-      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border/60 bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
+      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border/50 bg-background/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl">
         <div className="mx-auto grid max-w-3xl grid-cols-5">
           {NAV.map(({ to, label, Icon }) => (
             <Link
               key={to}
               to={to}
-              className="flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium text-muted-foreground transition-colors data-[status=active]:text-primary"
+              className="group relative flex flex-col items-center gap-1 py-3 text-[11px] font-medium text-muted-foreground transition-colors data-[status=active]:text-primary"
               activeProps={{ "data-status": "active" } as never}
             >
+              <span className="absolute inset-x-6 top-0 hidden h-[2px] rounded-full bg-gradient-to-r from-transparent via-primary to-transparent group-data-[status=active]:block" />
               <Icon className="h-5 w-5" />
               {label}
             </Link>
