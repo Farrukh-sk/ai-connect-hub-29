@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedLivechatRouteImport } from './routes/_authenticated/livechat'
 import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/leads'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -33,6 +34,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedLivechatRoute = AuthenticatedLivechatRouteImport.update({
   id: '/livechat',
@@ -80,6 +86,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/leads': typeof AuthenticatedLeadsRoute
   '/livechat': typeof AuthenticatedLivechatRoute
+  '/profile': typeof AuthenticatedProfileRoute
   '/clients/$id': typeof AuthenticatedClientsIdRoute
 }
 export interface FileRoutesByTo {
@@ -91,6 +98,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/leads': typeof AuthenticatedLeadsRoute
   '/livechat': typeof AuthenticatedLivechatRoute
+  '/profile': typeof AuthenticatedProfileRoute
   '/clients/$id': typeof AuthenticatedClientsIdRoute
 }
 export interface FileRoutesById {
@@ -104,6 +112,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/leads': typeof AuthenticatedLeadsRoute
   '/_authenticated/livechat': typeof AuthenticatedLivechatRoute
+  '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/clients_/$id': typeof AuthenticatedClientsIdRoute
 }
 export interface FileRouteTypes {
@@ -117,6 +126,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/leads'
     | '/livechat'
+    | '/profile'
     | '/clients/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -128,6 +138,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/leads'
     | '/livechat'
+    | '/profile'
     | '/clients/$id'
   id:
     | '__root__'
@@ -140,6 +151,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/leads'
     | '/_authenticated/livechat'
+    | '/_authenticated/profile'
     | '/_authenticated/clients_/$id'
   fileRoutesById: FileRoutesById
 }
@@ -171,6 +183,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/livechat': {
       id: '/_authenticated/livechat'
@@ -231,6 +250,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedLeadsRoute: typeof AuthenticatedLeadsRoute
   AuthenticatedLivechatRoute: typeof AuthenticatedLivechatRoute
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedClientsIdRoute: typeof AuthenticatedClientsIdRoute
 }
 
@@ -241,6 +261,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedLeadsRoute: AuthenticatedLeadsRoute,
   AuthenticatedLivechatRoute: AuthenticatedLivechatRoute,
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedClientsIdRoute: AuthenticatedClientsIdRoute,
 }
 
