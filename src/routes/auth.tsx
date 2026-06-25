@@ -5,14 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Mail } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({ meta: [{ title: "Sign in — Nexus CRM" }] }),
   component: AuthPage,
 });
 
-type Mode = "signin" | "signup" | "forgot" | "reset";
+type Mode = "signin" | "signup" | "forgot" | "reset" | "confirm";
 
 function AuthPage() {
   const navigate = useNavigate();
@@ -21,17 +21,23 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) navigate({ to: "/dashboard", replace: true });
     });
 
-    const hash = window.location.hash;
-    if (hash.includes("type=recovery")) {
+    if (window.location.hash.includes("type=recovery")) {
       setMode("reset");
     }
   }, [navigate]);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = setTimeout(() => setResendCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendCooldown]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -41,10 +47,11 @@ function AuthPage() {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin },
+          options: { emailRedirectTo: window.location.origin + "/auth" },
         });
         if (error) throw error;
-        toast.success("Account created — check your email to confirm.");
+        setMode("confirm");
+        setResendCooldown(60);
       } else if (mode === "signin") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -78,14 +85,72 @@ function AuthPage() {
     }
   }
 
-  const titles: Record<Mode, { heading: string; sub: string }> = {
+  async function resendConfirmation() {
+    if (resendCooldown > 0 || !email) return;
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email,
+        options: { emailRedirectTo: window.location.origin + "/auth" },
+      });
+      if (error) throw error;
+      toast.success("Confirmation email resent.");
+      setResendCooldown(60);
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  }
+
+  if (mode === "confirm") {
+    return (
+      <div className="flex min-h-dvh items-center justify-center px-5 py-10">
+        <div className="w-full max-w-sm text-center">
+          <div className="mb-6 flex flex-col items-center">
+            <div className="mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-primary text-primary-foreground">
+              <Mail className="h-7 w-7" />
+            </div>
+            <h1 className="text-2xl font-bold">Check your inbox</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              We sent a confirmation link to{" "}
+              <span className="font-medium text-foreground">{email}</span>.
+              Click it to activate your account.
+            </p>
+          </div>
+          <div className="glass-card rounded-2xl p-6 space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Didn't receive it? Check your spam folder or resend below.
+            </p>
+            <Button
+              onClick={resendConfirmation}
+              disabled={resendCooldown > 0}
+              variant="outline"
+              className="w-full"
+            >
+              {resendCooldown > 0
+                ? `Resend in ${resendCooldown}s`
+                : "Resend confirmation email"}
+            </Button>
+            <button
+              type="button"
+              onClick={() => { setMode("signin"); setPassword(""); }}
+              className="w-full text-center text-sm text-muted-foreground hover:text-foreground"
+            >
+              Back to sign in
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const titles: Record<Exclude<Mode, "confirm">, { heading: string; sub: string }> = {
     signin: { heading: "Nexus CRM", sub: "The CRM built for AI agencies." },
     signup: { heading: "Create account", sub: "Start managing your AI agency." },
     forgot: { heading: "Reset password", sub: "We'll email you a reset link." },
     reset: { heading: "Set new password", sub: "Choose a strong new password." },
   };
 
-  const { heading, sub } = titles[mode];
+  const { heading, sub } = titles[mode as Exclude<Mode, "confirm">];
 
   return (
     <div className="flex min-h-dvh items-center justify-center px-5 py-10">
