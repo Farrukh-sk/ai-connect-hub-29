@@ -81,27 +81,20 @@ function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <header className="relative overflow-hidden rounded-3xl border border-border/50 bg-gradient-to-br from-primary/25 via-card to-card p-5">
-        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-gold/15 blur-3xl" />
-        <div className="absolute -bottom-12 -left-8 h-32 w-32 rounded-full bg-primary/25 blur-3xl" />
-        <div className="relative">
-          <p className="text-[11px] uppercase tracking-[0.2em] text-gold/80">Today</p>
-          <h1 className="mt-1 font-display text-3xl font-bold tracking-tight">Good to see you</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Your WhatsApp AI agency at a glance.</p>
-        </div>
+      <header>
+        <p className="text-sm text-muted-foreground">WhatsApp AI bots overview</p>
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
       </header>
 
       <div className="grid grid-cols-2 gap-3">
         {stats.map(({ label, value, Icon, accent, to }) => {
           const card = (
-            <div className={`${accent ? "gold-card" : "glass-card"} h-full rounded-2xl p-4 transition-transform hover:-translate-y-0.5`}>
+            <div className={`glass-card h-full rounded-2xl p-4 ${accent ? "ring-1 ring-primary/40" : ""}`}>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">{label}</span>
-                <div className={`grid h-7 w-7 place-items-center rounded-lg ${accent ? "bg-gold/20 text-gold" : "bg-secondary text-muted-foreground"}`}>
-                  <Icon className="h-3.5 w-3.5" />
-                </div>
+                <span className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</span>
+                <Icon className={`h-4 w-4 ${accent ? "text-primary" : "text-muted-foreground"}`} />
               </div>
-              <div className={`mt-3 font-display text-3xl font-bold ${accent ? "text-gold" : "text-foreground"}`}>{value}</div>
+              <div className={`mt-3 text-3xl font-bold ${accent ? "text-primary" : ""}`}>{value}</div>
             </div>
           );
           return to ? <Link key={label} to={to}>{card}</Link> : <div key={label}>{card}</div>;

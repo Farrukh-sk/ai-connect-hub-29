@@ -32,11 +32,11 @@ function ClientDetailsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("clients")
-        .select("id,business_name,whatsapp_number,ai_prompt,status,settings")
+        .select("id,business_name,whatsapp_number,ai_prompt,status")
         .eq("id", id)
         .maybeSingle();
       if (error) throw error;
-      return data as (typeof data & { settings: Record<string, unknown> | null }) | null;
+      return data;
     },
   });
 
@@ -55,16 +55,6 @@ function ClientDetailsPage() {
     setWhatsapp(client.whatsapp_number ?? "");
     setStatus((client.status as typeof status) ?? "active");
     setPrompt(client.ai_prompt ?? "");
-    const s = (client.settings ?? {}) as {
-      business_type?: string;
-      model?: string;
-      tone?: string;
-      faqs?: FaqItem[];
-    };
-    if (s.business_type) setBusinessType(s.business_type);
-    if (s.model) setModel(s.model);
-    if (s.tone) setTone(s.tone);
-    if (Array.isArray(s.faqs)) setFaqs(s.faqs);
   }, [client]);
 
   const save = useMutation({
@@ -76,12 +66,6 @@ function ClientDetailsPage() {
           whatsapp_number: whatsapp || null,
           ai_prompt: prompt || null,
           status,
-          settings: {
-            business_type: businessType,
-            model,
-            tone,
-            faqs: faqs.filter((f) => f.q.trim() || f.a.trim()),
-          },
         })
         .eq("id", id);
       if (error) throw error;

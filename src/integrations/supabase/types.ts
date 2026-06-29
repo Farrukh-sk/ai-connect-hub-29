@@ -25,7 +25,6 @@ export type Database = {
           monthly_value: number | null
           notes: string | null
           phone: string | null
-          settings: Json
           status: Database["public"]["Enums"]["client_status"]
           updated_at: string
           user_id: string
@@ -41,7 +40,6 @@ export type Database = {
           monthly_value?: number | null
           notes?: string | null
           phone?: string | null
-          settings?: Json
           status?: Database["public"]["Enums"]["client_status"]
           updated_at?: string
           user_id: string
@@ -57,7 +55,6 @@ export type Database = {
           monthly_value?: number | null
           notes?: string | null
           phone?: string | null
-          settings?: Json
           status?: Database["public"]["Enums"]["client_status"]
           updated_at?: string
           user_id?: string
